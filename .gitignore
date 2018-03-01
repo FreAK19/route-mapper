@@ -1,0 +1,20 @@
+# modules
+/node_modules
+/bower_components
+
+
+# production
+
+/build
+
+# test
+/coverage
+
+# WebStorm
+/.idea
+
+# flow
+/flow-typed
+
+# Mac OS
+./DS-Store

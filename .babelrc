@@ -1,0 +1,23 @@
+{
+  "presets": [
+    ["es2015", {"modules": false}],
+    "stage-3",
+    "react"],
+  "plugins": [
+    "react-hot-loader/babel",
+    "babel-plugin-transform-class-properties"
+  ],
+  "env": {
+    "test": {
+      "presets": ["react"],
+      "plugins": [
+        "transform-es2015-modules-commonjs"
+      ]
+    },
+    "server": {
+      "plugins": [
+        "transform-es2015-modules-commonjs"
+      ]
+    }
+  }
+}
