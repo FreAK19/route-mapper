@@ -4,12 +4,15 @@ const development = require('./config/webpack.dev.config');
 const production = require('./config/webpack.prod.config');
 const path = require('path');
 
+// project paths
 
 const PATH = {
   //  not change name App
-  app: path.join(__dirname, './src/index.js'),
-  build: path.resolve(__dirname, 'build')
+  app: path.join(__dirname, './src/index.js'), // entry
+  build: path.resolve(__dirname, 'build') //  build
 };
+
+//  common configuration for dev and production
 
 const common = {
   context: __dirname,
@@ -17,6 +20,8 @@ const common = {
   output: {
     path: PATH.build,
   },
+
+  //  files extension
 
   resolve: {
     extensions: ['.js', '.jsx', '.json'],
@@ -31,13 +36,13 @@ const common = {
         loader: 'babel-loader'
       },
       {
-        test: /\.(woff|woff2|eot|ttf)$/,
+        test: /\.(woff|woff2|eot|ttf)(\?v=\d+\.\d+\.\d+)$/,
         exclude: /node_modules/,
         use: [
           {
             loader: "url-loader",
             options: {
-              limit: 10000,
+              limit: 50000,
               name: './fonts/[name].[ext]'
             }
           }
@@ -54,6 +59,7 @@ const common = {
           }
         ]
       },
+
       {
         test: /\.(jpe?g|png|svg|gif)$/,
         exclude: /node_modules/,
@@ -64,7 +70,34 @@ const common = {
               limit: 10000,
               name: './image/[name].[ext]'
             }
-          }
+          },
+
+          //  image optimization
+
+          {
+            loader: 'image-webpack-loader',
+            options: {
+              mozjpeg: {
+                progressive: true,
+                quality: 75
+              },
+
+              optipng: {
+                enabled: false,
+              },
+              pngquant: {
+                quality: '65-80',
+                speed: 4
+              },
+              gifsicle: {
+                interlaced: false,
+              },
+              // the webp option will enable WEBP
+              webp: {
+                quality: 75
+              }
+            }
+          },
         ]
       }
     ]
@@ -77,6 +110,7 @@ module.exports = function(env) {
       common,
       development,
       {
+        //  Hot-Module-Replacement
         entry: {
           app: [
             'react-hot-loader/patch',

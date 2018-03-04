@@ -1,28 +1,32 @@
 /*  eslint-disable  */
+
 const webpack = require('webpack');
-const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-const AssetsPlugin = require('assets-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CleanWebpackPlugin = require('clean-webpack-plugin');
-const ManifestPlugin = require('webpack-manifest-plugin');
+const WebpackCleanupPlugin = require('webpack-cleanup-plugin');
+const WebpackNotifierPlugin = require('webpack-notifier');
 
 module.exports = {
-  mode: "production",
+  mode: "production", //  webpack 4 mode production
+  devtool: "source-map", // source-maps enable
   output: {
-    filename: 'js/[name].[hash:6].js',
-    chunkFilename: '[name].[chunkhash:6].js',
-    publicPath: ""
+    filename: 'js/[name].[hash:6].js', // filename for entry
+    chunkFilename: 'js/[name].[chunkhash:6].js', // filename for chunks
+    publicPath: "" // public path root/
   },
+
   stats: {
     chunks: false,
     reasons: true,
     colors: true,
     timings: true
   },
+
   module: {
     rules: [
+      //  operate css files
+
       {
         test: /\.css$/,
         exclude: /node_modules/,
@@ -42,6 +46,13 @@ module.exports = {
               options: {
                 plugins: [
                   require('postcss-flexbugs-fixes'),
+                  require('cssnano')({
+                    preset: ['default', {
+                      discardComments: {
+                        removeAll: true,
+                      },
+                    }]
+                  }),
                   require('autoprefixer')
                 ]
               }
@@ -50,6 +61,9 @@ module.exports = {
           publicPath: '../'
         })
       },
+
+      //  operate less files
+
       {
         test: /\.less$/,
         exclude: /node_modules/,
@@ -67,7 +81,15 @@ module.exports = {
               loader: "postcss-loader",
               options: {
                 plugins: [
-                  require('autoprefixer')
+                  require('autoprefixer'),
+                  require('cssnano')({
+                    preset: ['default', {
+                      discardComments: {
+                        removeAll: true,
+                      },
+                    }]
+                  }),
+                  require('postcss-flexbugs-fixes')
                 ]
               }
             },
@@ -79,52 +101,53 @@ module.exports = {
       }
     ]
   },
+  // webpack 4 options
+
   optimization: {
-    splitChunks: {
-      chunks: "all"
+    minimize: true, //  minimize
+    //  minimizer: [new UglifyWebpackPlugin()],
+    runtimeChunk: { //  file manifest
+      name: 'manifest'
     },
-    minimizer: {
-      compress: {
-        warnings: false,
-        unused: true,
-        dead_code: true,
-        screw_ie8: true
-      },
-      mangle: {
-        screw_ie8: true
-      },
-      output: {
-        comments: false,
-        screw_ie8: true
-      },
-      sourceMap: true
+    splitChunks: {  //  code splitting
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          chunks: 'all',
+          name: "vendor",
+          minChunks: 3,
+          enforce: true
+        }
+      }
     }
   },
+
+  performance: {
+    hints: "warning", // "error" or false are valid too
+    maxEntrypointSize: 50000, // in bytes, default 250k
+    maxAssetSize: 450000, // in bytes
+  },
+
   plugins: [
-    new webpack.DefinePlugin({
-      'process.env': {
-        'NODE_ENV': JSON.stringify('production')
-      }
-    }),
-    new CleanWebpackPlugin(['build']),
-    new AssetsPlugin({
-      path: path.resolve(__dirname, '../build'),
-      filename: 'assets.json',
-      prettyPrint: true
-    }),
+    new WebpackCleanupPlugin(), //  clear build folder
+    new WebpackNotifierPlugin({ title: 'Webpack' }), // webpack notify on build status
+
+    //  extract html file
+
     new HtmlWebpackPlugin({
       inject: true,
+      minify: { removeAttributeQuotes: true },
       template: './index.html',
       hash: true,
       favicon: './src/favicon.ico',
-      pretty: true
     }),
+
+    //  extract styles
     new ExtractTextPlugin({
       filename: './css/[name].[hash:6].css',
       allChunks: true
     }),
-    new ManifestPlugin(),
     new webpack.optimize.ModuleConcatenationPlugin(),
-    new BundleAnalyzerPlugin()
+    new BundleAnalyzerPlugin() // unalize bundle file
   ]
 };

@@ -1,10 +1,15 @@
 /*  eslint-disable  */
-
+const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const WebpackNotifierPlugin = require('webpack-notifier');
+
+//  development config
 
 module.exports = {
-  mode: "development",
+
+  mode: "development", // webpack 4 mode dev
+
   output: {
     filename: 'public/[name].bundle.js',
     publicPath: ""
@@ -43,12 +48,15 @@ module.exports = {
       },
     ]
   },
+
+  // Development server
+
   devServer: {
     host: 'localhost',
     port: 8080,
-    hot: true,
-    open: true,
-    historyApiFallback: true,
+    hot: true, // HMR enable
+    open: true, //  open in browser
+    historyApiFallback: true, //  fallback for HTML5 History API
     overlay: {
       errors: true,
       warnings: true
@@ -58,14 +66,19 @@ module.exports = {
       poll: 1000
     },
   },
+
   plugins: [
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.NamedModulesPlugin(),
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: JSON.stringify('development')
-      }
-    }),
+
+    //  ignore files that non-watching
+
+    new webpack.WatchIgnorePlugin([
+      path.join(__dirname, 'node_modules')
+    ]),
+    new WebpackNotifierPlugin({ title: 'Webpack' }),  //  // webpack notify on build status
+    new webpack.HotModuleReplacementPlugin(), //  Hot-Module-Replacement enable
+
+    // web-dev-server html extract in memory
+
     new HtmlWebpackPlugin({
       inject: true,
       template: './index.html',
